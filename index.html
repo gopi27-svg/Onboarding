@@ -125,7 +125,7 @@
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
         .modal-content { background-color: #fff; margin: 10% auto; width: 90%; max-width: 600px; border-radius: 1rem; box-shadow: var(--shadow); overflow: hidden; }
         
-        #loader-overlay, .spinner { /* Functional Styles */ }
+        #loader-overlay { display: none; /* Other styles */ }
         
         @media (max-width: 1024px) {
             .main-container { grid-template-columns: 1fr; }
@@ -211,8 +211,11 @@
         </div>
     </div>
 
-    <!-- JavaScript logic remains identical -->
+    <!-- SCRIPT LOADING SECTION -->
+    <!-- Load the PapaParse library FIRST -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    
+    <!-- Load your custom script that USES the library SECOND -->
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzUYEvVdfgL_xMqTDFd5JmDjNOXHibWBI3ZW-pNOybb7pkCTWgOD_jVbek-FIyL4xz/exec";
         let recipients = [];
@@ -250,7 +253,48 @@
         function generateSampleCSV() { document.getElementById('sample-excel-link').href = URL.createObjectURL(new Blob(["Name,Email\nJohn Doe,john.doe@example.com"], { type: 'text/csv' })); }
         function addRecipient(name = '', email = '') { const container = document.getElementById('recipients-container'); const newGroup = document.createElement('div'); newGroup.className = 'input-group'; newGroup.innerHTML = `<input type="text" class="recipient-name" placeholder="Name" value="${name}"><input type="email" class="recipient-email" placeholder="Email" value="${email}"><button class="btn-danger" onclick="removeRecipient(this)"><i class="fas fa-times"></i></button>`; container.appendChild(newGroup); }
         function removeRecipient(button) { if (document.getElementById('recipients-container').children.length > 1) { button.closest('.input-group').remove(); } else { alert("You must have at least one recipient row."); } }
-        function importFromExcel() { const fileInput = document.getElementById('excel-upload'); if (!fileInput.files[0]) { alert("Please select a CSV file."); return; } PapaParse.parse(fileInput.files[0], { header: true, skipEmptyLines: true, complete: function(results) { const container = document.getElementById('recipients-container'); container.innerHTML = ''; results.data.forEach(row => { if (row.Name && row.Email) addRecipient(row.Name, row.Email); }); if (container.children.length === 0) addRecipient(); } }); }
+        
+        // --- MODIFIED IMPORT FUNCTION ---
+        function importFromExcel() {
+            if (typeof PapaParse === 'undefined') {
+                alert("Parsing library not loaded. Please do a hard refresh (Ctrl+Shift+R) and try again.");
+                console.error("PapaParse is not defined. The library might be blocked or failed to load.");
+                return;
+            }
+            const fileInput = document.getElementById('excel-upload');
+            if (!fileInput.files[0]) {
+                alert("Please select a CSV file.");
+                return;
+            }
+            PapaParse.parse(fileInput.files[0], {
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    const container = document.getElementById('recipients-container');
+                    if (results.data && results.data.length > 0) {
+                        container.innerHTML = ''; // Clear existing fields only if CSV has data
+                    } else {
+                        alert("Could not find any data in the CSV. Please check the file.");
+                        return;
+                    }
+                    results.data.forEach(row => {
+                        const nameKey = Object.keys(row).find(k => k.toLowerCase().trim() === 'name');
+                        const emailKey = Object.keys(row).find(k => k.toLowerCase().trim() === 'email');
+                        if (row[nameKey] && row[emailKey]) {
+                            addRecipient(row[nameKey], row[emailKey]);
+                        }
+                    });
+                    if (container.children.length === 0) {
+                        alert("No valid 'Name' and 'Email' columns found in the CSV. Please check the sample file for the correct format.");
+                        addRecipient(); // Add a blank row back
+                    }
+                },
+                error: function(error, file) {
+                    alert("Error parsing CSV file. Please ensure it is a valid CSV.");
+                    console.error("PapaParse error:", error, file);
+                }
+            });
+        }
         
         const detailsModal = document.getElementById('detailsModal');
         function showDetails(index) {
