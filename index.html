@@ -1,326 +1,490 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Onboarding Dashboard [Friendly & Bold]</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Onboarding Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <style>
+    :root {
+      --primary-color:#14B8A6; --primary-hover:#0D9488; --success-color:#22C55E;
+      --danger-color:#EF4444; --warning-color:#F59E0B; --bg-color:#F8F9FA;
+      --card-bg:#FFFFFF; --text-primary:#1F2937; --text-secondary:#6B7280;
+      --border-color:#E5E7EB; --shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    }
+    *{box-sizing:border-box}
+    body{font-family:'Inter',sans-serif;margin:0;background:var(--bg-color);color:var(--text-primary)}
+    .header{background:var(--card-bg);padding:1rem 2rem;display:flex;align-items:center;color:var(--text-primary);border-bottom:1px solid var(--border-color)}
+    .logo{height:60px; width:60px; border-radius:50%; object-fit:cover; box-shadow: 0 4px 10px rgba(0,0,0,0.1);}
+    .header h1{font-size:1.6rem;font-weight:700;margin:0;margin-left:1.25rem}
+    .main-container{padding:1rem 2rem}
+    .card{background:var(--card-bg);border-radius:1rem;box-shadow:var(--shadow);border:1px solid var(--border-color);overflow:hidden}
+    .card-header{padding:1.5rem; border-bottom:1px solid var(--border-color);} .card-header h2{font-size:1.5rem;font-weight:700;margin:0;color:var(--primary-hover)}
+    .card-header p{margin:.25rem 0 0 0;color:var(--text-secondary)} .card-body{padding:1.5rem}
+    .input-group{display:flex;gap:.75rem;margin-bottom:.75rem}
+    .input-group input, .search-input{padding:.75rem;border:1px solid #D1D5DB;border-radius:.5rem;flex-grow:1;font-size:.9rem}
+    .input-group input:focus, .search-input:focus{outline:none;border-color:var(--primary-color);box-shadow:0 0 0 3px rgba(20,184,166,.2)}
+    button{padding:.75rem 1.25rem;border:none;border-radius:.5rem;cursor:pointer;font-size:.9rem;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:.5rem;transition:all .2s}
+    button:hover:not(:disabled){transform:translateY(-2px);box-shadow:var(--shadow)}
+    button:disabled{cursor:not-allowed;opacity:.7}
+    .btn-primary{background:var(--primary-color);color:#fff}.btn-primary:hover:not(:disabled){background:var(--primary-hover)}
+    .btn-success{background:var(--success-color);color:#fff}.btn-danger{background:var(--danger-color);color:#fff}
+    .btn-secondary{background:#E5E7EB;color:var(--text-primary)} .btn-secondary:hover:not(:disabled){background:#D1D5DB}
+    .btn-warning{background:var(--warning-color);color:#fff}
+    table{width:100%;border-collapse:collapse}
+    thead th{padding:.75rem 1.5rem;text-align:left;font-weight:600;color:var(--text-secondary);font-size:.8rem;text-transform:uppercase;border-bottom:2px solid var(--border-color)}
+    tbody tr{border-top:1px solid var(--border-color);transition:background-color .2s} tbody tr:hover{background:#F9FAFB;cursor:pointer}
+    tbody td{padding:1.25rem 1.5rem}
+    .status-badge{padding:.2rem .6rem;border-radius:9999px;font-weight:500;font-size:.8rem}
+    .status-completed{background:#D1FAE5;color:#065F46}.status-pending{background:#FEF3C7;color:#92400E}
+    .filter-controls{display:flex;gap:.75rem;margin-bottom:1.5rem; flex-wrap: wrap;}
+    .filter-btn.active{background:var(--primary-color);color:#fff}
+    .modal{display:none;position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;overflow:auto;background:rgba(0,0,0,.5);backdrop-filter:blur(4px)}
+    .modal-content{background:#fff;margin:10% auto;width:90%;max-width:600px;border-radius:1rem;box-shadow:var(--shadow);overflow:hidden}
+    #loader-overlay{display:none; /* Add spinner styles if needed */}
 
-    <style>
-        :root {
-            --primary-color: #14B8A6; /* Teal */
-            --primary-hover: #0D9488;
-            --success-color: #22C55E;
-            --danger-color: #EF4444;
-            --warning-color: #F59E0B;
-            --bg-color: #F0FDFA; /* Very light teal */
-            --card-bg: #FFFFFF;
-            --text-primary: #1F2937;
-            --text-secondary: #6B7280;
-            --border-color: #CFFAEE;
-            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-        }
-        
-        * { box-sizing: border-box; }
+    /* Tab Header & Button Layout */
+    .tab-header-container { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); margin-bottom: 1.5rem; }
+    .tabs { display: flex; }
+    .tab-link { font-size: 1rem; font-weight: 600; color: var(--text-secondary); background: none; border: none; padding: .75rem 1.5rem; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all .2s; }
+    .tab-link:hover { color: var(--primary-hover); }
+    .tab-link.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn .3s; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-        }
-        
-        .header {
-            background: linear-gradient(to right, #14B8A6, #2DD4BF);
-            padding: 1rem 2rem;
-            display: flex;
-            align-items: center;
-            color: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .logo { height: 40px; width: auto; }
-        .header h1 { font-size: 1.5rem; font-weight: 700; margin: 0; margin-left: 1rem; }
-
-        .main-container {
-            display: grid;
-            grid-template-columns: 420px 1fr;
-            gap: 2rem;
-            padding: 2rem;
-            align-items: flex-start;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 1rem;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
-            overflow: hidden;
-        }
-
-        .card-header { padding: 1.5rem; }
-        .card-header h2 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin: 0;
-            color: var(--primary-hover);
-        }
-        .card-header p {
-            margin: 0.25rem 0 0 0;
-            color: var(--text-secondary);
-        }
-        
-        .card-body { padding: 1.5rem; }
-        .card-footer { padding: 1.5rem; background-color: var(--bg-color); border-top: 1px solid var(--border-color); }
-
-        .input-group { display: flex; gap: 0.75rem; margin-bottom: 0.75rem; }
-        .input-group input {
-            padding: 0.75rem;
-            border: 1px solid #D1D5DB;
-            border-radius: 0.5rem;
-            flex-grow: 1;
-            font-size: 0.9rem;
-        }
-        .input-group input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2); }
-        
-        button {
-            padding: 0.75rem 1.25rem;
-            border: none;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            transition: all 0.2s ease;
-        }
-        button:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
-        .btn-primary { background-color: var(--primary-color); color: white; }
-        .btn-primary:hover { background-color: var(--primary-hover); }
-        .btn-success { background-color: var(--success-color); color: white; }
-        .btn-danger { background-color: var(--danger-color); color: white; }
-        .btn-secondary { background-color: #E5E7EB; color: var(--text-secondary); }
-        .btn-secondary:hover { background-color: #D1D5DB; }
-        .btn-warning { background-color: var(--warning-color); color: white; }
-        
-        table { width: 100%; border-collapse: collapse; }
-        thead th { padding: 0.75rem 1.5rem; text-align: left; font-weight: 600; color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; border-bottom: 2px solid var(--border-color); }
-        tbody tr { border-top: 1px solid var(--border-color); transition: background-color 0.2s; }
-        tbody tr:hover { background-color: var(--bg-color); cursor: pointer; }
-        tbody td { padding: 1.25rem 1.5rem; }
-        
-        .status-badge { padding: 0.2rem 0.6rem; border-radius: 9999px; font-weight: 500; font-size: 0.8rem; }
-        .status-completed { background-color: #D1FAE5; color: #065F46; }
-        .status-pending { background-color: #FEF3C7; color: #92400E; }
-        
-        .filter-controls { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; }
-        .filter-btn.active { background-color: var(--primary-color); color: #fff; }
-        
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
-        .modal-content { background-color: #fff; margin: 10% auto; width: 90%; max-width: 600px; border-radius: 1rem; box-shadow: var(--shadow); overflow: hidden; }
-        
-        #loader-overlay { display: none; /* Other styles */ }
-        
-        @media (max-width: 1024px) {
-            .main-container { grid-template-columns: 1fr; }
-        }
-    </style>
+    /* "Add & Send" Styles */
+    .add-send-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .grid-col { display: flex; flex-direction: column; }
+    .grid-col h4 { font-size: 1.1rem; color: var(--text-primary); margin-top: 0; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: .75rem; }
+    #recipients-container { max-height: 300px; min-height: 200px; overflow-y: auto; padding: 4px; /* space for focus shadow */}
+    .file-upload-area { border: 2px dashed var(--border-color); border-radius: .75rem; padding: 1.5rem; text-align: center; background: #F9FAFB; cursor: pointer; transition: all .2s; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;}
+    .file-upload-area:hover { border-color: var(--primary-color); background: var(--bg-color); }
+    .file-upload-area i { font-size: 2rem; color: var(--primary-color); margin-bottom: .75rem; }
+    .file-upload-area p { margin: 0; font-weight: 500; color: var(--text-secondary); }
+    #file-info { margin-top: 1rem; text-align: center; }
+    @media (max-width: 900px) { .add-send-grid { grid-template-columns: 1fr; } }
+  </style>
 </head>
 <body>
-    <div id="loader-overlay"><div class="spinner"></div></div>
+  <div id="loader-overlay"><div class="spinner"></div></div>
+  <header class="header">
+    <img src="https://i.postimg.cc/pTJQwfkV/USDC-Logo.png" class="logo" alt="Company Logo">
+    <h1>Onboarding Dashboard</h1>
+  </header>
 
-    <header class="header">
-        <img src="https://i.postimg.cc/pTJQwfkV/USDC-Logo.png" alt="Company Logo" class="logo">
-        <h1>Onboarding Dashboard</h1>
-    </header>
+  <main class="main-container">
+    <div class="tab-header-container">
+        <div class="tabs">
+            <button class="tab-link active" data-tab="add-send"><i class="fas fa-envelope-open-text fa-fw"></i> Add & Send Emails</button>
+            <button class="tab-link" data-tab="tracker"><i class="fas fa-tasks fa-fw"></i> Progress Tracker</button>
+        </div>
+        <button id="send-emails-btn" class="btn-primary"><i class="fas fa-paper-plane"></i> Send Onboarding Mails</button>
+    </div>
 
-    <main class="main-container">
-        <aside>
-            <div class="card">
-                <div class="card-header">
-                    <h2>Add & Send Emails</h2>
-                    <p>Manage your recipient list and send onboarding emails.</p>
-                </div>
-                <div class="card-body">
-                    <h4 style="margin-top:0;">Recipients</h4>
+    <!-- Tab 1: Add & Send Emails (Default) -->
+    <div id="add-send" class="tab-content active">
+        <div class="card">
+            <div class="card-body add-send-grid">
+                <!-- Left Column: Manual Add -->
+                <div class="grid-col">
+                    <h4>Add Recipients Manually</h4>
                     <div id="recipients-container"></div>
-                    <button onclick="addRecipient()" class="btn-secondary" style="width: 100%;"><i class="fas fa-plus"></i> Add Another</button>
-                    
-                    <h4 style="margin-top: 2rem;">Import from CSV</h4>
-                    <input type="file" id="excel-upload" accept=".csv" onchange="document.getElementById('file-name').textContent = this.files[0].name" style="display: none;">
-                    <label for="excel-upload" class="btn-secondary"><i class="fas fa-upload"></i> Choose File</label>
-                    <span id="file-name" style="margin-left: 10px; color: var(--text-secondary);"></span>
-                    <button onclick="importFromExcel()" class="btn-primary" style="margin-left: 0.5rem;"><i class="fas fa-file-import"></i> Import</button>
-                    <a href="#" id="sample-excel-link" download="sample.csv" style="font-size: 0.8rem; text-decoration: none; color: var(--primary-hover); margin-top: 0.5rem; display: block;">Download Sample</a>
+                    <button id="btn-add-recipient" class="btn-secondary" style="width:100%; margin-top: 0.75rem;"><i class="fas fa-plus"></i> Add Another</button>
                 </div>
-                <div class="card-footer">
-                     <button id="send-emails-btn" onclick="sendEmails()" class="btn-primary" style="width: 100%; font-size: 1rem; padding: 0.8rem;"><i class="fas fa-paper-plane"></i> Send Onboarding Mails</button>
-                </div>
-            </div>
-        </aside>
-
-        <section>
-            <div class="card">
-                 <div class="card-header">
-                     <h2>Progress Tracker</h2>
-                     <p>View the status of all onboarding employees.</p>
-                 </div>
-                 <div class="card-body">
-                    <div class="filter-controls">
-                        <button class="filter-btn active btn-secondary" onclick="applyFilter('all', this)">All</button>
-                        <button class="filter-btn btn-secondary" onclick="applyFilter('pending', this)">Pending</button>
-                        <button class="filter-btn btn-secondary" onclick="applyFilter('completed', this)">Completed</button>
-                        <button id="send-pending-btn" onclick="sendRemindersToPending()" class="btn-warning" style="margin-left: auto;"><i class="fas fa-bell"></i> Remind All Pending</button>
+                <!-- Right Column: Import -->
+                <div class="grid-col">
+                    <h4>Import from File</h4>
+                    <input type="file" id="excel-upload" accept=".csv,.xlsx" style="display:none;">
+                    <label for="excel-upload" class="file-upload-area">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click to browse or drag & drop</p>
+                    </label>
+                    <div id="file-info">
+                        <span id="file-name" style="color:var(--text-secondary);">No file selected</span>
                     </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Name & Email</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tracking-table-body"></tbody>
-                    </table>
-                 </div>
-            </div>
-        </section>
-    </main>
-    
-    <div id="detailsModal" class="modal">
-        <div class="modal-content">
-             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="color: var(--primary-hover);">Recipient Details</h2>
-                <span onclick="closeModal()" style="cursor: pointer; font-size: 1.5rem;">&times;</span>
-            </div>
-            <div class="card-body">
-                <p><strong>Name:</strong> <span id="modal-name"></span></p>
-                <p><strong>Email:</strong> <span id="modal-email"></span></p>
-                <p><strong>Sent History:</strong></p>
-                <ul id="modal-sent-history" style="background: var(--bg-color); border-radius: 0.5rem; padding: 0.75rem; list-style: none;"></ul>
-                <h4>Forms Status:</h4>
-                <ul id="modal-forms-status" style="list-style: none; padding: 0;"></ul>
-                <p><strong>Overall Status:</strong> <span id="modal-overall-status"></span></p>
+                    <button id="btn-import" class="btn-primary" style="margin-top:1rem;"><i class="fas fa-file-import"></i> Import</button>
+                    <a href="#" id="sample-excel-link" download="sample.csv" style="font-size:.8rem;text-decoration:none;color:var(--primary-hover);margin-top:.75rem;text-align:center;">Download Sample</a>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- SCRIPT LOADING SECTION -->
-    <!-- Load the PapaParse library FIRST -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    
-    <!-- Load your custom script that USES the library SECOND -->
-    <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzUYEvVdfgL_xMqTDFd5JmDjNOXHibWBI3ZW-pNOybb7pkCTWgOD_jVbek-FIyL4xz/exec";
-        let recipients = [];
-        let currentFilter = 'all';
-        const loader = document.getElementById('loader-overlay');
-        document.addEventListener('DOMContentLoaded', () => { addRecipient(); generateSampleCSV(); loadInitialData(); });
+    <!-- Tab 2: Progress Tracker -->
+    <div id="tracker" class="tab-content">
+        <div class="card">
+            <div class="card-header">
+              <h2>Progress Tracker</h2>
+              <p>View the status of all onboarding employees.</p>
+            </div>
+            <div class="card-body">
+              <div class="filter-controls">
+                <button class="filter-btn btn-secondary active" data-filter="all">All</button>
+                <button class="filter-btn btn-secondary" data-filter="pending">Pending</button>
+                <button class="filter-btn btn-secondary" data-filter="completed">Completed</button>
+                <input type="text" id="search-input" class="search-input" placeholder="Search by Name or Email..." style="margin-left: 1rem; width: 250px;">
+                <button id="send-pending-btn" class="btn-warning" style="margin-left:auto;"><i class="fas fa-bell"></i> Remind All Pending</button>
+              </div>
+              <table>
+                <thead><tr><th>Name & Email</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody id="tracking-table-body"></tbody>
+              </table>
+            </div>
+        </div>
+    </div>
+  </main>
 
-        async function apiCall(action, payload) { loader.style.display = 'flex'; try { const res = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action, payload }) }); const result = await res.json(); if (result.status === 'error') throw new Error(result.message); return result.data; } finally { loader.style.display = 'none'; } }
-        async function loadInitialData() { try { document.getElementById('tracking-table-body').innerHTML = `<tr><td colspan="3">Loading...</td></tr>`; recipients = await apiCall('getRecipients'); updateTrackingTable(); } catch (error) { alert('Error loading data: ' + error.message); } }
-        async function sendEmails() { const recipientsToSend = []; document.querySelectorAll('.recipient-name').forEach((nameInput, i) => { const emailInput = document.querySelectorAll('.recipient-email')[i]; if (nameInput.value.trim() && emailInput.value.trim()) recipientsToSend.push({ name: nameInput.value.trim(), email: emailInput.value.trim() }); }); if (recipientsToSend.length === 0) { alert("Please add a recipient."); return; } try { const response = await apiCall('sendEmails', recipientsToSend); alert(response.message); loadInitialData(); } catch (error) { alert("Failed to send emails: " + error.message); } }
-        async function sendRemindersToPending() { const pendingRecipients = recipients.filter(r => !r.forms.every(f => f.status === 'Completed')); if (pendingRecipients.length === 0) { alert("No pending recipients."); return; } if (confirm(`Send reminders to ${pendingRecipients.length} recipients?`)) { try { const response = await apiCall('sendBulkReminder', pendingRecipients); alert(response.message); loadInitialData(); } catch (error) { alert('Failed to send reminders: ' + error.message); } } }
-        async function sendReminder(event, index) { event.stopPropagation(); const recipient = recipients[index]; const button = event.target.closest('button'); button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; button.disabled = true; try { const response = await apiCall('sendReminder', recipient); alert(response.message); loadInitialData(); } catch (error) { alert('Failed to send reminder: ' + error.message); updateTrackingTable(); } }
-        function applyFilter(filterType, clickedButton) { currentFilter = filterType; document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active')); clickedButton.classList.add('active'); updateTrackingTable(); }
-        
-        function updateTrackingTable() {
-            const tableBody = document.getElementById('tracking-table-body');
-            let filteredRecipients = recipients;
-            if (currentFilter === 'pending') filteredRecipients = recipients.filter(r => !r.forms.every(f => f.status === 'Completed'));
-            else if (currentFilter === 'completed') filteredRecipients = recipients.filter(r => r.forms.every(f => f.status === 'Completed'));
-            tableBody.innerHTML = '';
-            if (filteredRecipients.length === 0) { const row = tableBody.insertRow(); const cell = row.insertCell(); cell.colSpan = 3; cell.textContent = 'No recipients found.'; cell.style.textAlign = 'center'; cell.style.padding = '2rem'; return; }
-            filteredRecipients.forEach(recipient => {
-                const originalIndex = recipients.findIndex(r => r.email === recipient.email);
-                const row = tableBody.insertRow();
-                row.onclick = () => showDetails(originalIndex);
-                row.insertCell().innerHTML = `<div style="font-weight: 500;">${recipient.name}</div><div style="font-size: 0.8rem; color: var(--text-secondary);">${recipient.email}</div>`;
-                const allCompleted = recipient.forms.every(f => f.status === 'Completed');
-                row.insertCell().innerHTML = `<span class="status-badge ${allCompleted ? 'status-completed' : 'status-pending'}">${allCompleted ? 'Completed' : 'Pending'}</span>`;
-                const reminderCell = row.insertCell();
-                if (!allCompleted) reminderCell.innerHTML = `<button class="btn-secondary" onclick="sendReminder(event, ${originalIndex})"><i class="fas fa-bell"></i></button>`;
-                else reminderCell.textContent = '';
-            });
+  <!-- Modal remains the same -->
+  <div id="detailsModal" class="modal">
+    <div class="modal-content">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <h2 style="color:var(--primary-hover);">Recipient Details</h2>
+            <button id="modal-close" title="Close" class="btn-secondary" style="padding:.25rem .5rem;">&times;</button>
+        </div>
+        <div class="card-body">
+            <p><strong>Name:</strong> <span id="modal-name"></span></p>
+            <p><strong>Email:</strong> <span id="modal-email"></span></p>
+            <p><strong>Sent History:</strong></p>
+            <ul id="modal-sent-history" style="background:var(--bg-color);border-radius:.5rem;padding:.75rem;list-style:none;"></ul>
+            <h4>Forms Status:</h4>
+            <ul id="modal-forms-status" style="list-style:none;padding:0;"></ul>
+            <p><strong>Overall Status:</strong> <span id="modal-overall-status"></span></p>
+        </div>
+    </div>
+</div>
+
+  <!-- Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <script>
+  (function(){
+    // --- All JavaScript functions remain the same ---
+    var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzUYEvVdfgL_xMqTDFd5JmDjNOXHibWBI3ZW-pNOybb7pkCTWgOD_jVbek-FIyL4xz/exec";
+    var recipients = [];
+    var currentFilter = 'all';
+    var loader = document.getElementById('loader-overlay');
+
+    function showLoader(show){ loader.style.display = show ? 'flex':'none'; }
+
+    function apiCall(action, payload){
+      showLoader(true);
+      return fetch(SCRIPT_URL, {
+        method:'POST',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify({action:action, payload:payload})
+      })
+      .then(function(res){ return res.json(); })
+      .then(function(result){
+        showLoader(false);
+        if (result.status === 'error') { throw new Error(result.message); }
+        return result.data;
+      })
+      .catch(function(e){ showLoader(false); throw e; });
+    }
+
+    function loadInitialData(){
+      document.getElementById('tracking-table-body').innerHTML = '<tr><td colspan="3">Loading...</td></tr>';
+      apiCall('getRecipients').then(function(data){
+        recipients = data || [];
+        updateTrackingTable();
+      }).catch(function(err){ alert('Error loading data: ' + err.message); });
+    }
+
+    function addRecipient(name, email){
+      name = name || ''; email = email || '';
+      var container = document.getElementById('recipients-container');
+      var div = document.createElement('div');
+      div.className = 'input-group';
+      div.innerHTML = '<input type="text" class="recipient-name" placeholder="Name" value="'+name+'">' +
+                      '<input type="email" class="recipient-email" placeholder="Email" value="'+email+'">' +
+                      '<button class="btn-danger" title="Remove"><i class="fas fa-times"></i></button>';
+      div.querySelector('button').addEventListener('click', function(){
+        if (container.children.length > 1) { container.removeChild(div); }
+        else { alert('You must have at least one recipient row.'); }
+      });
+      container.appendChild(div);
+    }
+
+    function sendEmails(){
+      var btn = document.getElementById('send-emails-btn');
+      var originalHtml = btn.innerHTML;
+      var rows = document.querySelectorAll('#recipients-container .input-group');
+      var toSend = [];
+      Array.prototype.forEach.call(rows, function(r){
+        var n = r.querySelector('.recipient-name').value.trim();
+        var e = r.querySelector('.recipient-email').value.trim();
+        if (n && e) { toSend.push({name:n, email:e}); }
+      });
+
+      if (!toSend.length) {
+        alert('Please add at least one valid recipient in the "Add & Send Emails" tab.');
+        return;
+      }
+      
+      if (!confirm('Are you sure you want to send onboarding emails to ' + toSend.length + ' recipient(s)?')) {
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+      apiCall('sendEmails', toSend)
+        .then(function(resp){
+          alert(resp.message || 'Emails have been queued successfully.');
+          document.getElementById('recipients-container').innerHTML = '';
+          addRecipient();
+          loadInitialData();
+        })
+        .catch(function(err){
+          alert('Failed to send emails: ' + err.message);
+        })
+        .finally(function() {
+          btn.disabled = false;
+          btn.innerHTML = originalHtml;
+        });
+    }
+
+    function sendRemindersToPending(){
+      var btn = document.getElementById('send-pending-btn');
+      var originalHtml = btn.innerHTML;
+      var pending = recipients.filter(function(r){
+        return !(r.forms || []).every(function(f){ return f.status === 'Completed'; });
+      });
+
+      if (!pending.length) {
+        alert('There are no pending recipients to remind.');
+        return;
+      }
+      if (!confirm('Are you sure you want to send reminders to ' + pending.length + ' pending recipient(s)?')) {
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending Reminders...';
+
+      apiCall('sendBulkReminder', pending)
+        .then(function(resp){
+          alert(resp.message || 'Reminders have been queued successfully.');
+          loadInitialData();
+        })
+        .catch(function(err){
+          alert('Failed to send reminders: ' + err.message);
+        })
+        .finally(function(){
+          btn.disabled = false;
+          btn.innerHTML = originalHtml;
+        });
+    }
+
+    function sendReminder(index, btnEl){
+      var recipient = recipients[index];
+      var originalHtml = btnEl.innerHTML;
+      btnEl.disabled = true;
+      btnEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+      apiCall('sendReminder', recipient)
+        .then(function(resp){
+          alert(resp.message || 'Reminder sent.');
+          loadInitialData();
+        })
+        .catch(function(err){
+          alert('Failed to send reminder: ' + err.message);
+        })
+        .finally(function() {
+            btnEl.disabled = false;
+            btnEl.innerHTML = originalHtml;
+        });
+    }
+
+    function applyFilter(filterType){
+      currentFilter = filterType;
+      var buttons = document.querySelectorAll('.filter-btn');
+      Array.prototype.forEach.call(buttons, function(b){
+        b.classList.remove('active');
+        if (b.getAttribute('data-filter') === filterType) b.classList.add('active');
+      });
+      updateTrackingTable();
+    }
+
+    function updateTrackingTable(){
+      var body = document.getElementById('tracking-table-body');
+      var searchTerm = document.getElementById('search-input').value.toLowerCase();
+      var list = recipients.slice();
+
+      if (currentFilter === 'pending') list = list.filter(function(r){ return !(r.forms || []).every(function(f){return f.status==='Completed';}); });
+      if (currentFilter === 'completed') list = list.filter(function(r){ return (r.forms || []).every(function(f){return f.status==='Completed';}); });
+
+      if (searchTerm) {
+        list = list.filter(function(r) {
+            return (r.name || '').toLowerCase().includes(searchTerm) || (r.email || '').toLowerCase().includes(searchTerm);
+        });
+      }
+
+      body.innerHTML = '';
+      if (!list.length){
+        var tr = body.insertRow();
+        var td = tr.insertCell();
+        td.colSpan = 3; td.textContent = 'No recipients found.'; td.style.textAlign = 'center'; td.style.padding='2rem';
+        return;
+      }
+      list.forEach(function(rec){
+        var idx = recipients.findIndex(function(r){ return r.email === rec.email; });
+        var tr = body.insertRow();
+        tr.addEventListener('click', function(){ showDetails(idx); });
+        tr.insertCell().innerHTML = '<div style="font-weight:500;">'+rec.name+'</div><div style="font-size:.8rem;color:var(--text-secondary);">'+rec.email+'</div>';
+        var allCompleted = (rec.forms || []).every(function(f){ return f.status==='Completed'; });
+        tr.insertCell().innerHTML = '<span class="status-badge '+(allCompleted?'status-completed':'status-pending')+'">'+(allCompleted?'Completed':'Pending')+'</span>';
+        var action = tr.insertCell();
+        if (!allCompleted){
+          var btn = document.createElement('button');
+          btn.className = 'btn-secondary';
+          btn.innerHTML = '<i class="fas fa-bell"></i>';
+          btn.title = 'Send Reminder';
+          btn.addEventListener('click', function(e){ e.stopPropagation(); sendReminder(idx, this); });
+          action.appendChild(btn);
+        } else {
+          action.textContent = '';
         }
-        
-        function generateSampleCSV() { document.getElementById('sample-excel-link').href = URL.createObjectURL(new Blob(["Name,Email\nJohn Doe,john.doe@example.com"], { type: 'text/csv' })); }
-        function addRecipient(name = '', email = '') { const container = document.getElementById('recipients-container'); const newGroup = document.createElement('div'); newGroup.className = 'input-group'; newGroup.innerHTML = `<input type="text" class="recipient-name" placeholder="Name" value="${name}"><input type="email" class="recipient-email" placeholder="Email" value="${email}"><button class="btn-danger" onclick="removeRecipient(this)"><i class="fas fa-times"></i></button>`; container.appendChild(newGroup); }
-        function removeRecipient(button) { if (document.getElementById('recipients-container').children.length > 1) { button.closest('.input-group').remove(); } else { alert("You must have at least one recipient row."); } }
-        
-        // --- MODIFIED IMPORT FUNCTION ---
-        function importFromExcel() {
-            if (typeof PapaParse === 'undefined') {
-                alert("Parsing library not loaded. Please do a hard refresh (Ctrl+Shift+R) and try again.");
-                console.error("PapaParse is not defined. The library might be blocked or failed to load.");
-                return;
-            }
-            const fileInput = document.getElementById('excel-upload');
-            if (!fileInput.files[0]) {
-                alert("Please select a CSV file.");
-                return;
-            }
-            PapaParse.parse(fileInput.files[0], {
-                header: true,
-                skipEmptyLines: true,
-                complete: function(results) {
-                    const container = document.getElementById('recipients-container');
-                    if (results.data && results.data.length > 0) {
-                        container.innerHTML = ''; // Clear existing fields only if CSV has data
-                    } else {
-                        alert("Could not find any data in the CSV. Please check the file.");
-                        return;
-                    }
-                    results.data.forEach(row => {
-                        const nameKey = Object.keys(row).find(k => k.toLowerCase().trim() === 'name');
-                        const emailKey = Object.keys(row).find(k => k.toLowerCase().trim() === 'email');
-                        if (row[nameKey] && row[emailKey]) {
-                            addRecipient(row[nameKey], row[emailKey]);
-                        }
-                    });
-                    if (container.children.length === 0) {
-                        alert("No valid 'Name' and 'Email' columns found in the CSV. Please check the sample file for the correct format.");
-                        addRecipient(); // Add a blank row back
-                    }
-                },
-                error: function(error, file) {
-                    alert("Error parsing CSV file. Please ensure it is a valid CSV.");
-                    console.error("PapaParse error:", error, file);
+      });
+    }
+
+    function generateSampleCSV(){
+      var link = document.getElementById('sample-excel-link');
+      var blob = new Blob(["Name,Email\nJohn Doe,john.doe@example.com"], {type:'text/csv'});
+      link.href = URL.createObjectURL(blob);
+    }
+
+    function importFromExcel(){
+      var input = document.getElementById('excel-upload');
+      var file = input.files && input.files[0];
+      if (!file){ alert('Please select a file to import.'); return; }
+      var name = file.name || '';
+      var ext = name.split('.').pop().toLowerCase();
+      var container = document.getElementById('recipients-container');
+
+      function addRows(rows){
+        if (rows && rows.length > 0) container.innerHTML = ''; // Clear previous manual entries
+        var added = 0;
+        (rows || []).forEach(function(row){
+          var keys = Object.keys(row || {});
+          var nk = keys.find(function(k){ return String(k).toLowerCase().trim() === 'name'; });
+          var ek = keys.find(function(k){ return String(k).toLowerCase().trim() === 'email'; });
+          var n = nk ? String(row[nk]).trim() : '';
+          var e = ek ? String(row[ek]).trim() : '';
+          if (n && e){ addRecipient(n, e); added++; }
+        });
+        if (!added){
+          alert("No valid 'Name' and 'Email' columns found. Headers must be exactly Name, Email.");
+          if (!container.children.length) addRecipient(); // Add one blank row if import fails
+        }
+      }
+
+      if (ext === 'csv'){
+        if (typeof Papa === 'undefined'){ alert('CSV parser not loaded. Hard refresh and try again.'); return; }
+        Papa.parse(file, { header:true, skipEmptyLines:true,
+          complete:function(res){ addRows(res.data || []); },
+          error:function(){ alert('Error parsing CSV.'); }
+        });
+      } else if (ext === 'xlsx'){
+        if (typeof XLSX === 'undefined'){ alert('Excel parser not loaded.'); return; }
+        var reader = new FileReader();
+        reader.onload = function(e){
+          var data = new Uint8Array(e.target.result);
+          var wb = XLSX.read(data, {type:'array'});
+          var ws = wb.Sheets[wb.SheetNames[0]];
+          var rows = XLSX.utils.sheet_to_json(ws, {defval:''});
+          addRows(rows);
+        };
+        reader.onerror = function(){ alert("Couldn't read the Excel file."); };
+        reader.readAsArrayBuffer(file);
+      } else {
+        alert('Unsupported file type. Please upload .csv or .xlsx.');
+      }
+    }
+
+    var detailsModal = document.getElementById('detailsModal');
+    function showDetails(index){
+      var r = recipients[index]; if (!r) return;
+      document.getElementById('modal-name').textContent = r.name || '';
+      document.getElementById('modal-email').textContent = r.email || '';
+      var ul = document.getElementById('modal-sent-history'); ul.innerHTML='';
+      if (r.sentHistory){
+        String(r.sentHistory).split(';').forEach(function(item){
+          var li = document.createElement('li'); li.textContent = item.trim(); ul.appendChild(li);
+        });
+      } else { ul.innerHTML = '<li>No emails sent yet.</li>'; }
+      var formsUl = document.getElementById('modal-forms-status'); formsUl.innerHTML='';
+      var formNames = ["PF Form","PAN-Aadhaar-Declaration-Form","ID-Card Form"];
+      var allCompleted = true;
+      (r.forms || []).forEach(function(f, i){
+        var done = f.status === 'Completed';
+        var li = document.createElement('li');
+        li.innerHTML = '<i class="'+(done?'fas fa-check-circle':'far fa-circle')+'" style="color:'+(done?'var(--success-color)':'#ccc')+';"></i> '+
+                       (formNames[i] || ('Form '+(i+1)))+': <span class="status-badge '+(done?'status-completed':'status-pending')+'">'+(f.status||'Pending')+'</span>';
+        formsUl.appendChild(li);
+        if (!done) allCompleted = false;
+      });
+      document.getElementById('modal-overall-status').innerHTML = '<span class="status-badge '+(allCompleted?'status-completed':'status-pending')+'">'+(allCompleted?'Completed':'Pending')+'</span>';
+      detailsModal.style.display = 'block';
+    }
+
+    // --- UPDATED: Tab switching logic ---
+    function setupTabs() {
+        var sendBtn = document.getElementById('send-emails-btn');
+        document.querySelectorAll('.tab-link').forEach(function(button) {
+            button.addEventListener('click', function() {
+                var tabName = this.dataset.tab;
+                
+                // Show/hide the send button based on the active tab
+                if (tabName === 'add-send') {
+                    sendBtn.style.display = 'inline-flex';
+                } else {
+                    sendBtn.style.display = 'none';
                 }
+
+                // The rest of the tab switching logic
+                document.querySelectorAll('.tab-link').forEach(function(link){ link.classList.remove('active'); });
+                document.querySelectorAll('.tab-content').forEach(function(content){ content.classList.remove('active'); });
+                this.classList.add('active');
+                document.getElementById(tabName).classList.add('active');
             });
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function(){
+      // Event Listeners
+      document.getElementById('btn-add-recipient').addEventListener('click', function(){ addRecipient(); });
+      document.getElementById('excel-upload').addEventListener('change', function(e){
+        var fileNameEl = document.getElementById('file-name');
+        if (e.target.files[0] && e.target.files[0].name) {
+            fileNameEl.textContent = e.target.files[0].name;
+            fileNameEl.style.fontWeight = '600';
+        } else {
+            fileNameEl.textContent = 'No file selected';
+            fileNameEl.style.fontWeight = 'normal';
         }
-        
-        const detailsModal = document.getElementById('detailsModal');
-        function showDetails(index) {
-            const recipient = recipients[index];
-            if (!recipient) return;
-            document.getElementById('modal-name').textContent = recipient.name;
-            document.getElementById('modal-email').textContent = recipient.email;
-            const historyList = document.getElementById('modal-sent-history');
-            historyList.innerHTML = '';
-            if (recipient.sentHistory) { recipient.sentHistory.split(';').forEach(item => { const li = document.createElement('li'); li.textContent = item.trim(); historyList.appendChild(li); }); } else { historyList.innerHTML = '<li>No emails sent yet.</li>'; }
-            const modalFormsStatus = document.getElementById('modal-forms-status');
-            modalFormsStatus.innerHTML = '';
-            const formNames = ["PF Form", "PAN-Aadhaar-Declaration-Form", "ID-Card Form"];
-            let allCompleted = true;
-            recipient.forms.forEach((form, i) => {
-                const isCompleted = form.status === 'Completed';
-                const li = document.createElement('li');
-                li.innerHTML = `<i class="${isCompleted ? 'fas fa-check-circle' : 'far fa-circle'}" style="color: ${isCompleted ? 'var(--success-color)' : '#ccc'};"></i> ${formNames[i]}: <span class="status-badge ${isCompleted ? 'status-completed' : 'status-pending'}">${form.status}</span>`;
-                modalFormsStatus.appendChild(li);
-                if (!isCompleted) allCompleted = false;
-            });
-            document.getElementById('modal-overall-status').innerHTML = `<span class="status-badge ${allCompleted ? 'status-completed' : 'status-pending'}">${allCompleted ? 'Completed' : 'Pending'}</span>`;
-            detailsModal.style.display = 'block';
-        }
-        function closeModal() { detailsModal.style.display = 'none'; }
-        window.onclick = function(event) { if (event.target == detailsModal) closeModal(); }
-    </script>
+      });
+      document.getElementById('btn-import').addEventListener('click', importFromExcel);
+      document.getElementById('send-emails-btn').addEventListener('click', sendEmails);
+      document.getElementById('send-pending-btn').addEventListener('click', sendRemindersToPending);
+      document.getElementById('search-input').addEventListener('input', updateTrackingTable);
+      Array.prototype.forEach.call(document.querySelectorAll('.filter-btn'), function(btn){
+        btn.addEventListener('click', function(){ applyFilter(btn.getAttribute('data-filter')); });
+      });
+      document.getElementById('modal-close').addEventListener('click', function(){ detailsModal.style.display='none'; });
+      window.addEventListener('click', function(e){ if (e.target === detailsModal) detailsModal.style.display='none'; });
+
+      // Initialization
+      addRecipient();
+      generateSampleCSV();
+      loadInitialData();
+      setupTabs(); // Initialize the tab functionality
+    });
+  })();
+  </script>
 </body>
 </html>
