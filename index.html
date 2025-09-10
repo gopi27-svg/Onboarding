@@ -18,7 +18,7 @@
     *{box-sizing:border-box}
     body{font-family:'Inter',sans-serif;margin:0;background:var(--bg-color);color:var(--text-primary)}
     .header{background:var(--card-bg);padding:1rem 2rem;display:flex;align-items:center;color:var(--text-primary);border-bottom:1px solid var(--border-color)}
-    .logo{height:60px; width:60px; border-radius:50%; object-fit:cover; box-shadow: 0 4px 10px rgba(0,0,0,0.1);}
+    .logo{height:100px; width:auto; border-radius:0; object-fit:contain; box-shadow: 0 4px 10px rgba(0,0,0,0.1);}
     .header h1{font-size:1.6rem;font-weight:700;margin:0;margin-left:1.25rem}
     .main-container{padding:1rem 2rem}
     .card{background:var(--card-bg);border-radius:1rem;box-shadow:var(--shadow);border:1px solid var(--border-color);overflow:hidden}
@@ -162,13 +162,23 @@
 
   <script>
   (function(){
-    // --- All JavaScript functions remain the same ---
-    var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzUYEvVdfgL_xMqTDFd5JmDjNOXHibWBI3ZW-pNOybb7pkCTWgOD_jVbek-FIyL4xz/exec";
+    var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxlQD_ByGIp1XSWAlSz4Le4HW5mXJCP_ItF6L3D27hR8Cago6GI12KmwPFbk2Jb9TBY/exec";
     var recipients = [];
     var currentFilter = 'all';
     var loader = document.getElementById('loader-overlay');
 
     function showLoader(show){ loader.style.display = show ? 'flex':'none'; }
+
+    // === KEY FIX: consistent completion logic (no forms => Pending)
+    function isCompleted(rec){
+      var forms = (rec && rec.forms) ? rec.forms : [];
+      if (!forms.length) return false; // no data yet
+      for (var i=0;i<forms.length;i++){
+        var st = ((forms[i] && forms[i].status) ? String(forms[i].status) : '').toLowerCase().trim();
+        if (st !== 'completed') return false;
+      }
+      return true;
+    }
 
     function apiCall(action, payload){
       showLoader(true);
@@ -251,9 +261,9 @@
     function sendRemindersToPending(){
       var btn = document.getElementById('send-pending-btn');
       var originalHtml = btn.innerHTML;
-      var pending = recipients.filter(function(r){
-        return !(r.forms || []).every(function(f){ return f.status === 'Completed'; });
-      });
+
+      // FIX: use isCompleted
+      var pending = recipients.filter(function(r){ return !isCompleted(r); });
 
       if (!pending.length) {
         alert('There are no pending recipients to remind.');
@@ -315,8 +325,9 @@
       var searchTerm = document.getElementById('search-input').value.toLowerCase();
       var list = recipients.slice();
 
-      if (currentFilter === 'pending') list = list.filter(function(r){ return !(r.forms || []).every(function(f){return f.status==='Completed';}); });
-      if (currentFilter === 'completed') list = list.filter(function(r){ return (r.forms || []).every(function(f){return f.status==='Completed';}); });
+      // FIX: use isCompleted
+      if (currentFilter === 'pending')   list = list.filter(function(r){ return !isCompleted(r); });
+      if (currentFilter === 'completed') list = list.filter(function(r){ return  isCompleted(r); });
 
       if (searchTerm) {
         list = list.filter(function(r) {
@@ -335,8 +346,11 @@
         var idx = recipients.findIndex(function(r){ return r.email === rec.email; });
         var tr = body.insertRow();
         tr.addEventListener('click', function(){ showDetails(idx); });
-        tr.insertCell().innerHTML = '<div style="font-weight:500;">'+rec.name+'</div><div style="font-size:.8rem;color:var(--text-secondary);">'+rec.email+'</div>';
-        var allCompleted = (rec.forms || []).every(function(f){ return f.status==='Completed'; });
+        tr.insertCell().innerHTML = '<div style="font-weight:500;">'+(rec.name||'')+'</div><div style="font-size:.8rem;color:var(--text-secondary);">'+(rec.email||'')+'</div>';
+
+        // FIX: use isCompleted
+        var allCompleted = isCompleted(rec);
+
         tr.insertCell().innerHTML = '<span class="status-badge '+(allCompleted?'status-completed':'status-pending')+'">'+(allCompleted?'Completed':'Pending')+'</span>';
         var action = tr.insertCell();
         if (!allCompleted){
@@ -417,36 +431,39 @@
           var li = document.createElement('li'); li.textContent = item.trim(); ul.appendChild(li);
         });
       } else { ul.innerHTML = '<li>No emails sent yet.</li>'; }
+
       var formsUl = document.getElementById('modal-forms-status'); formsUl.innerHTML='';
+
+      // FIX: overall status via helper
+      var overallCompleted = isCompleted(r);
+
+      // Render three rows even if forms are missing (defaults to Not Completed)
       var formNames = ["PF Form","PAN-Aadhaar-Declaration-Form","ID-Card Form"];
-      var allCompleted = true;
-      (r.forms || []).forEach(function(f, i){
-        var done = f.status === 'Completed';
+      var forms = (r.forms && r.forms.length) ? r.forms : [{},{},{}];
+
+      forms.forEach(function(f, i){
+        var raw = (f && f.status) ? String(f.status) : '';
+        var done = raw.toLowerCase().trim() === 'completed';
+        var label = done ? 'Completed' : (raw ? raw : 'Not Completed');
         var li = document.createElement('li');
         li.innerHTML = '<i class="'+(done?'fas fa-check-circle':'far fa-circle')+'" style="color:'+(done?'var(--success-color)':'#ccc')+';"></i> '+
-                       (formNames[i] || ('Form '+(i+1)))+': <span class="status-badge '+(done?'status-completed':'status-pending')+'">'+(f.status||'Pending')+'</span>';
+                       (formNames[i] || ('Form '+(i+1)))+': '+
+                       '<span class="status-badge '+(done?'status-completed':'status-pending')+'">'+label+'</span>';
         formsUl.appendChild(li);
-        if (!done) allCompleted = false;
       });
-      document.getElementById('modal-overall-status').innerHTML = '<span class="status-badge '+(allCompleted?'status-completed':'status-pending')+'">'+(allCompleted?'Completed':'Pending')+'</span>';
+
+      document.getElementById('modal-overall-status').innerHTML =
+        '<span class="status-badge '+(overallCompleted?'status-completed':'status-pending')+'">'+(overallCompleted?'Completed':'Pending')+'</span>';
+
       detailsModal.style.display = 'block';
     }
 
-    // --- UPDATED: Tab switching logic ---
     function setupTabs() {
         var sendBtn = document.getElementById('send-emails-btn');
         document.querySelectorAll('.tab-link').forEach(function(button) {
             button.addEventListener('click', function() {
                 var tabName = this.dataset.tab;
-                
-                // Show/hide the send button based on the active tab
-                if (tabName === 'add-send') {
-                    sendBtn.style.display = 'inline-flex';
-                } else {
-                    sendBtn.style.display = 'none';
-                }
-
-                // The rest of the tab switching logic
+                sendBtn.style.display = (tabName === 'add-send') ? 'inline-flex' : 'none';
                 document.querySelectorAll('.tab-link').forEach(function(link){ link.classList.remove('active'); });
                 document.querySelectorAll('.tab-content').forEach(function(content){ content.classList.remove('active'); });
                 this.classList.add('active');
@@ -456,7 +473,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', function(){
-      // Event Listeners
       document.getElementById('btn-add-recipient').addEventListener('click', function(){ addRecipient(); });
       document.getElementById('excel-upload').addEventListener('change', function(e){
         var fileNameEl = document.getElementById('file-name');
@@ -478,11 +494,10 @@
       document.getElementById('modal-close').addEventListener('click', function(){ detailsModal.style.display='none'; });
       window.addEventListener('click', function(e){ if (e.target === detailsModal) detailsModal.style.display='none'; });
 
-      // Initialization
       addRecipient();
       generateSampleCSV();
       loadInitialData();
-      setupTabs(); // Initialize the tab functionality
+      setupTabs();
     });
   })();
   </script>
